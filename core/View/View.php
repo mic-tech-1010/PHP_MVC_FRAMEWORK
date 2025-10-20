@@ -2,6 +2,9 @@
 
 namespace Core\View;
 
+use Core\View\TemplateEngine;
+use Core\App;
+
 class View
 {
     protected static string $basePath;
@@ -19,10 +22,16 @@ class View
      */
     public static function render(string $view, array $data = []): string
     {
-        $viewPath = self::$basePath . DIRECTORY_SEPARATOR . str_replace('.', DIRECTORY_SEPARATOR, $view) . '.php';
+        $engine = new TemplateEngine(
+            self::$basePath,
+             dirname(App::basePath()) . '/storage/views/cache'
+        );
 
-        if (!file_exists($viewPath)) {
-            throw new \Exception("View file not found: {$viewPath}");
+        // Compile .blade.php template into cached PHP
+        $compiledPath = $engine->compile($view);
+
+        if (!file_exists($compiledPath)) {
+            throw new \Exception("View file not found: {$compiledPath}");
         }
 
         // Extract variables to be available in the view
@@ -30,7 +39,7 @@ class View
 
         // Capture the output
         ob_start();
-        include $viewPath;
+        include $compiledPath;
         return ob_get_clean();
     }
 }

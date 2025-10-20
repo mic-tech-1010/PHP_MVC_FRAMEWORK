@@ -6,24 +6,24 @@ use Core\Database\DB;
 use Core\View\View;
 use Core\App;
 
-Route::get('/', function () {
-    $data =  DB::table('user')
-        ->select('id', 'username', 'email')
-        ->where('id', '=', 2)
-        ->getAll();
+// Route::get('/', function () {
+//     $data =  DB::table('user')
+//         ->select('id', 'username', 'email')
+//         ->where('id', '=', 2)
+//         ->getAll();
 
-    echo "<pre>";
-    print_r($data);
-});
+//     echo "<pre>";
+//     print_r($data);
+// });
 
-Route::get('/ayo', function () {
-     return View::render('layout/index', [
-            'title' => 'My second View',
-             'name' => 'michael'
-        ]);
-});
 
-Route::get('/ade', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index']);
+
+Route::get('/about', [HomeController::class, 'about']);
+
+Route::get('/contact', [HomeController::class, 'contact']);
+
+Route::post('/contact', [HomeController::class, 'postContact']);
 
 // Route::post('/profile/{id}', 'Profile:index', ['auth']);
 

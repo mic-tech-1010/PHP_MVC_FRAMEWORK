@@ -24,7 +24,10 @@ class Router
         self::$routes['get'][$path] = $callback;
     }
 
-    public function post($path, $handler) {}
+    public function post($path, $callback)
+    {
+        self::$routes['post'][$path] = $callback;
+    }
 
     public function group($pathPrefix, $callback, $middleware = []) {}
 
@@ -53,9 +56,9 @@ class Router
             $controllerInstance = new $controller();
 
             // Call its method
-            return call_user_func([$controllerInstance, $methodName]);
+            return call_user_func([$controllerInstance, $methodName], $this->request);
         }
 
-        return call_user_func($callback);
+        return call_user_func($callback, $this->request);
     }
 }

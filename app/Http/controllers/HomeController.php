@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 //use Core\Database\DB;
-
+use Core\Route\Route;
 use Core\Http\Request;
 use Core\View\View;
 use Core\App;
@@ -16,7 +16,6 @@ class HomeController
             'title' => 'My second View',
              'name' => 'michael'
         ]);
-
     }
 
      public function about(Request $request)
@@ -32,7 +31,7 @@ class HomeController
     }
 
     public function postContact(Request $request) {
-        print_r($request->email);
+        dd($request->email);
     }
 
 }

@@ -2,28 +2,28 @@
 
 namespace Core\Route;
 
-use Core\Route\Router;
 use Core\Http\Request;
 
 class Route
 {
-    public static Request $request;
+    protected static ?Router $router = null;
+    protected static Request $request;
 
     public function __construct(Request $request)
     {
         self::$request = $request;
+        if (!self::$router) {
+            self::$router = new Router($request);
+        }
     }
 
     public static function init()
     {
-        $route = new Router(self::$request);
-        echo $route->run();
+        echo self::$router->run();
     }
 
     public static function __callStatic($name, $arguments)
     {
-        $route = new Router(self::$request);
-        return call_user_func_array([$route, $name], $arguments);
+        return call_user_func_array([self::$router, $name], $arguments);
     }
-    
 }

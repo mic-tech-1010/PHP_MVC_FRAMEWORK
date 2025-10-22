@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
+use Core\View\View;
 
 class AdminController {
 
     public function index () {
-        echo 'from admin controller';
+        return View::render('auth.login');
     }
 
 }

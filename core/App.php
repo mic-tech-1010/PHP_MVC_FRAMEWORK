@@ -33,7 +33,6 @@ class App
 
         self::$basePath = rtrim($resolvedBase, '/\\');
 
-
         //load configuration
         self::$config['app'] = require __DIR__ . '/../config/app.php';
         self::$config['database'] = require __DIR__ . '/../config/database.php';
@@ -79,7 +78,6 @@ class App
 
     public static function basePath(string $path = '')
     {
-        //return self::$basePath . ($path ? '/' . ltrim($path, '/') : '');
         return self::$basePath . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '/\\') : '');
     }
 }

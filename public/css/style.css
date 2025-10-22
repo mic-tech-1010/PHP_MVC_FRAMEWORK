@@ -7,7 +7,7 @@
 }
 
 body {
-    background-color: rgb(58, 57, 57);
+    background-color: #181c31;
     color: white;
     min-height: 100vh;
 }
@@ -24,7 +24,7 @@ a:hover {
 header {
 
     background-color: white;
-    color: black;
+    color: #4a90e2;
     padding: 1rem;
     font-size: 1.2rem;
 }
@@ -32,7 +32,7 @@ header {
 footer {
     display: flex;
     background-color: white;
-    color: black;
+    color: #4a90e2;
     justify-content: center;
     align-items: center;
     padding: 1rem;

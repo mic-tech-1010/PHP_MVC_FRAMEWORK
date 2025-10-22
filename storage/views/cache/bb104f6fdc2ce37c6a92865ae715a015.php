@@ -23,7 +23,6 @@
     </div>
 </header>
 
-
     <main class="main">
         <div class="container">
             <h1>Welcome <?= htmlspecialchars($name) ?> to the home page</h1>

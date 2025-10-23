@@ -19,4 +19,5 @@ class DB {
         $builder = new QueryBuilder(self::$pdo);
         return call_user_func_array([$builder, $name], $arguments);
     }
+    
 }

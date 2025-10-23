@@ -14,6 +14,8 @@ class Router
     protected array $groupStack = [];
     protected array $middlewareRegistry = [];
     protected Request $request;
+    protected array $namedRoutes = [];
+
 
     public function __construct(Request $request)
     {
@@ -121,15 +123,33 @@ class Router
         $path = $this->request->getPath();
         $method = $this->request->getMethod();
 
-        $callbackEntry = self::$routes[$method][$path] ?? false;
+        $callbackEntry = null;
+        $params = [];
 
-        if ($callbackEntry === false) {
+        foreach (self::$routes[$method] as $routePath => $routeData) {
+            // Convert example /users/{id} → /users/([^/]+)
+            $pattern = preg_replace('#\{([^}]+)\}#', '([^/]+)', $routePath);
+            $pattern = "#^" . $pattern . "$#";
+
+            if (preg_match($pattern, $path, $matches)) {
+                array_shift($matches); // remove full match
+                preg_match_all('#\{([^}]+)\}#', $routePath, $paramNames);
+                $paramNames = $paramNames[1] ?? [];
+                $params = array_combine($paramNames, $matches);
+                $callbackEntry = $routeData;
+                break;
+            }
+        }
+
+        if (!$callbackEntry) {
             http_response_code(404);
             return "404 Not Found";
         }
 
         $callback = $callbackEntry['callback'];
         $routeMiddlewares = $callbackEntry['middleware'] ?? [];
+
+        $this->request->setParams($params);
 
         // Run middleware chain
         foreach ($routeMiddlewares as $mw) {
@@ -166,10 +186,38 @@ class Router
         if (is_array($callback)) {
             [$controllerClass, $methodName] = $callback;
             $controllerInstance = new $controllerClass();
-            return call_user_func([$controllerInstance, $methodName], $this->request);
+            return call_user_func([$controllerInstance, $methodName], $this->request, ...array_values($params));
         }
 
-        return call_user_func($callback, $this->request);
+        return call_user_func($callback, $this->request, ...array_values($params));
+    }
+
+    /*----------------------------------------------
+     | ROUTE NAMING
+     ----------------------------------------------*/
+
+    public function addNamedRoute(string $name, string $method, string $path): void
+    {
+        $this->namedRoutes[$name] = [
+            'method' => $method,
+            'path' => $path
+        ];
+    }
+
+    public function route(string $name, array $params = []): ?string
+    {
+        if (!isset($this->namedRoutes[$name])) {
+            return null;
+        }
+
+        $route = $this->namedRoutes[$name]['path'];
+
+        // Replace {key} with corresponding $params
+        foreach ($params as $key => $value) {
+            $route = str_replace('{' . $key . '}', $value, $route);
+        }
+
+        return $route;
     }
 
     /*----------------------------------------------
@@ -291,19 +339,25 @@ class Router
         .count {
           color: #6c6f85;
         }
+        .route-name {
+          color: #4dd0e1;
+          font-weight: 500;
+       }
+
     </style>
 
     <h2>Registered Routes</h2>
     <table>
-        <thead>
+       <thead>
             <tr>
-                <th>#</th>
-                <th>Method</th>
-                <th>Path</th>
-                <th>Action</th>
-                <th>Middleware</th>
+               <th>#</th>
+               <th>Method</th>
+               <th>Path</th>
+               <th>Action</th>
+               <th>Name</th>
+              <th>Middleware</th>
             </tr>
-        </thead>
+          </thead>
         <tbody>
     ';
 
@@ -326,12 +380,22 @@ class Router
                     ? '<span class="none">—</span>'
                     : '<span class="middleware">' . implode(', ', $route['middleware']) . '</span>';
 
+                $name = '—'; // default if no name
+
+                foreach ($this->namedRoutes as $rName => $rData) {
+                    if ($rData['path'] === $path && $rData['method'] === $method) {
+                        $name = '<span class="route-name">' . htmlspecialchars($rName) . '</span>';
+                        break;
+                    }
+                }
+
                 $html .= "
             <tr>
                 <td class='count'>{$count}</td>
                 <td class='method'>" . strtoupper($method) . "</td>
                 <td class='path'>{$path}</td>
                 <td class='{$actionClass}'>{$action}</td>
+                <td>{$name}</td>
                 <td>{$middleware}</td>
             </tr>";
                 $count++;

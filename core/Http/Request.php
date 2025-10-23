@@ -2,11 +2,14 @@
 
 namespace Core\Http;
 
+use Core\Validator\Validator;
+use Core\Http\Session;
 use Exception;
 
 class Request
 {
     protected array $body;
+    protected array $params = []; // holds dynamic route parameters
 
     public function __construct()
     {
@@ -65,5 +68,47 @@ class Request
     public function all()
     {
         return $this->body;
+    }
+
+    /*----------------------------------------------
+     | ROUTE PARAMETERS (new section)
+     ----------------------------------------------*/
+    public function setParams(array $params): void
+    {
+        $this->params = $params;
+    }
+
+    public function getParam(string $key, $default = null)
+    {
+        return $this->params[$key] ?? $default;
+    }
+
+    public function allParams(): array
+    {
+        return $this->params;
+    }
+
+    /*----------------------------------------------
+     | Validator (new section)
+     ----------------------------------------------*/
+
+    public function validate(array $rules): array
+    {
+        $validator = new Validator($this->body, $rules);
+
+        try {
+            $validated = $validator->validate();
+            return $validated;
+        } catch (\Exception $e) {
+            $errors = json_decode($e->getMessage(), true);
+
+            // Store old input and errors in session flash
+            Session::flash('errors', $errors);
+            Session::flash('old', $this->body);
+
+            // Redirect back
+            back();
+            exit;
+        }
     }
 }

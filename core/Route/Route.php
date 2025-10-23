@@ -22,6 +22,11 @@ class Route
         echo self::$router->run();
     }
 
+    public static function getRouter(): ?Router
+    {
+        return self::$router;
+    }
+
     public static function __callStatic($name, $arguments)
     {
         return call_user_func_array([self::$router, $name], $arguments);

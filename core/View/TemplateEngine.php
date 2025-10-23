@@ -163,17 +163,47 @@ class TemplateEngine
     /**
      * Convert Blade-like syntax into PHP
      */
-    protected function parseTemplate(string $content): string
+  public function parseTemplate(string $content): string
     {
-        // Very simple replacements — you can extend this later
-        $content = preg_replace('/\{\{\s*(.+?)\s*\}\}/', '<?= htmlspecialchars($1) ?>', $content);
-        $content = preg_replace('/\@\s*if\s*\((.+?)\)/', '<?php if ($1): ?>', $content);
-        $content = preg_replace('/\@\s*elseif\s*\((.+?)\)/', '<?php elseif ($1): ?>', $content);
-        $content = preg_replace('/\@\s*else/', '<?php else: ?>', $content);
-        $content = preg_replace('/\@\s*endif/', '<?php endif; ?>', $content);
-        $content = preg_replace('/\@\s*foreach\s*\((.+?)\)/', '<?php foreach ($1): ?>', $content);
-        $content = preg_replace('/\@\s*endforeach/', '<?php endforeach; ?>', $content);
+        // Step 1: escaped output
+        $content = preg_replace(
+            '/\{\{\s*(.+?)\s*\}\}/s',
+            '<?= htmlspecialchars($1, ENT_QUOTES, "UTF-8") ?>',
+            $content
+        );
+
+        // Step 2: compile directives with balanced parentheses
+        $content = $this->compileBalanced($content, 'if', '<?php if (%s): ?>');
+        $content = $this->compileBalanced($content, 'elseif', '<?php elseif (%s): ?>');
+        $content = $this->compileBalanced($content, 'foreach', '<?php foreach (%s): ?>');
+        $content = $this->compileBalanced($content, 'isset', '<?php if (isset(%s)): ?>');
+        $content = $this->compileBalanced($content, 'empty', '<?php if (empty(%s)): ?>');
+
+        // Step 3: simple replacements (don’t need parentheses)
+        $replacements = [
+            '@else'       => '<?php else: ?>',
+            '@endif'      => '<?php endif; ?>',
+            '@endforeach' => '<?php endforeach; ?>',
+            '@endisset'   => '<?php endif; ?>',
+            '@endempty'   => '<?php endif; ?>',
+        ];
+        $content = str_replace(array_keys($replacements), array_values($replacements), $content);
 
         return $content;
+    }
+
+    /**
+     * Compile directives like @if(...) or @foreach(...) safely.
+     */
+    protected function compileBalanced(string $content, string $name, string $format): string
+    {
+        $pattern = '/@' . $name . '\s*\(([^()]*+(?:\((?>[^()]+|(?1))*\)[^()]*)*)\)/';
+        // Explanation:
+        // - Match balanced parentheses (recursive regex)
+        // - Works for nested calls like @if($foo->bar(baz(1,2)))
+
+        return preg_replace_callback($pattern, function ($matches) use ($format) {
+            return sprintf($format, $matches[1]);
+        }, $content);
     }
 }

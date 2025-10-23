@@ -21,4 +21,10 @@ class RouteDefinition
         $this->router->addMiddlewareToRoute($this->method, $this->path, $middlewares);
         return $this;
     }
+
+    public function name(string $name): self
+    {
+        $this->router->addNamedRoute($name, $this->method, $this->path);
+        return $this;
+    }
 }

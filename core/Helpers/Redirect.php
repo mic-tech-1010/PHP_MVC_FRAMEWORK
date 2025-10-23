@@ -7,3 +7,12 @@ if (!function_exists('redirect')) {
         exit();
     }
 }
+
+if (!function_exists('back')) {
+    function back()
+    {
+        $referer = $_SERVER['HTTP_REFERER'] ?? '/';
+        header("Location: {$referer}");
+        exit;
+    }
+}

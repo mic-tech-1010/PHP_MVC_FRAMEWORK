@@ -40,4 +40,11 @@ class Session
     {
         return isset($_SESSION[$key]);
     }
+
+     public static function destroy(): void
+    {
+        self::start();
+        session_unset();
+        session_destroy();
+    }
 }

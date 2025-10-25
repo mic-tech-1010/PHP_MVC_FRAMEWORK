@@ -2,8 +2,8 @@
 
 @section('content')
     <div class="container">
-        <form action="/login" method="POST" class="contact-form">
-            <h2 class="form-heading">Login</h2>
+        <form action="/register" method="POST" class="contact-form">
+            <h2 class="form-heading">Register</h2>
 
             @if (session('_flash.error'))
                 <div class="error-message">
@@ -12,17 +12,21 @@
             @endif
 
             <div class="form-input">
+                <label for="">Full Name</label>
+                <input type="text" name="username" value="{{ old('name') }}">
+            </div>
+            <div class="form-input">
                 <label for="">Email</label>
-                <input type="text" name="email" value="{{ old('email') }}">
+                <input type="email" name="email" value="{{ old('email') }}">
             </div>
             <div class="form-input">
                 <label for="">Password</label>
                 <input type="password" name="password">
             </div>
 
-            <input type="submit" value="Login" class="form-submit">
+            <input type="submit" value="Register" class="form-submit">
         </form>
 
-        <p>No account? <a href="/register">Register</a></p>
+        <p>Already have an account? <a href="/login">Login</a></p>
     </div>
 @endsection

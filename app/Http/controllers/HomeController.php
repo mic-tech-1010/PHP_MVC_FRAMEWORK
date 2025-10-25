@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-//use Core\Database\DB;
+use Core\Database\DB;
 use Core\Route\Route;
 use Core\Http\Request;
 use Core\View\View;
@@ -18,7 +18,7 @@ class HomeController
         ]);
     }
 
-    public function about(Request $request, $id)
+    public function about(Request $request)
     {
         return View::render('about', [
             'title' => 'My second View',
@@ -37,8 +37,13 @@ class HomeController
             'name' => 'required|min:3',
             'email' => 'required|email',
         ]);
+ 
+        DB::table('user')->where('id', '=', 2)->update([
+          'username' => $request->name,
+          'email' => $request->email
+        ]);
 
-        // If validation passes, continue
-        dd($request->name);
+        return redirect(route('home'));
+
     }
 }
